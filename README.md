@@ -1,6 +1,4 @@
-# Stockroom Lite
-
-Stockroom Lite is a small application that controls warehouse inventory.
+# Lightweight-Warehouse-Application
 
 ## What the application shows
 
