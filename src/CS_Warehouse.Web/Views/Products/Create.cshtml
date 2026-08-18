@@ -1,0 +1,30 @@
+@model ProductFormViewModel
+@{
+    ViewData["Title"] = "Add product";
+}
+
+<div class="page-heading">
+    <div>
+        <div class="page-kicker">Catalog</div>
+        <h1 class="page-title">Add product</h1>
+        <p class="page-subtitle">Create the catalog record first, then receive stock into a location.</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-8">
+        <form class="content-card content-card-body" method="post">
+            <partial name="_ProductForm" model="Model" />
+        </form>
+    </div>
+    <div class="col-xl-4 mt-4 mt-xl-0">
+        <div class="help-panel">
+            <h2 class="h6">Good SKU conventions</h2>
+            <p class="mb-0">Use a stable identifier such as <span class="sku">ELEC-100</span>. SKUs are unique and comparisons ignore letter casing.</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

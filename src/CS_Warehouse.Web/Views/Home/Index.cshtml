@@ -1,0 +1,137 @@
+﻿@model DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="page-heading">
+    <div>
+        <div class="page-kicker">Inventory overview</div>
+        <h1 class="page-title">Warehouse dashboard</h1>
+        <p class="page-subtitle">See current stock health and the latest warehouse activity.</p>
+    </div>
+    <a class="btn btn-primary" asp-controller="Inventory" asp-action="Create">Record movement</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="metric-card">
+            <div class="metric-label">Active SKUs</div>
+            <div class="metric-value">@Model.TotalSkus</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="metric-card">
+            <div class="metric-label">Units on hand</div>
+            <div class="metric-value">@Model.TotalUnits.ToString("N0")</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="metric-card">
+            <div class="metric-label">Low stock</div>
+            <div class="metric-value text-warning-emphasis">@Model.LowStockCount</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="metric-card">
+            <div class="metric-label">Out of stock</div>
+            <div class="metric-value text-danger-emphasis">@Model.OutOfStockCount</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-xl-7">
+        <section class="content-card h-100">
+            <div class="content-card-header">
+                <div>
+                    <h2 class="h5 mb-1">Needs attention</h2>
+                    <div class="small text-muted">At or below the product reorder level</div>
+                </div>
+                <a class="btn btn-sm btn-outline-secondary"
+                   asp-controller="Products" asp-action="Index">All products</a>
+            </div>
+            @if (Model.LowStockItems.Count == 0)
+            {
+                <div class="empty-state">All active products are above their reorder level.</div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Category</th>
+                                <th class="text-end">On hand</th>
+                                <th class="text-end">Reorder at</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var item in Model.LowStockItems)
+                        {
+                            var stockClass = item.IsOutOfStock ? "stock-out" : "stock-low";
+                            <tr>
+                                <td>
+                                    <a class="fw-semibold text-decoration-none"
+                                       asp-controller="Products" asp-action="Details" asp-route-id="@item.Id">
+                                        @item.Name
+                                    </a>
+                                    <div class="sku">@item.Sku</div>
+                                </td>
+                                <td>@item.CategoryName</td>
+                                <td class="text-end">
+                                    <span class="stock-pill @stockClass">@item.QuantityOnHand</span>
+                                </td>
+                                <td class="text-end">@item.ReorderLevel</td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </section>
+    </div>
+    <div class="col-xl-5">
+        <section class="content-card h-100">
+            <div class="content-card-header">
+                <div>
+                    <h2 class="h5 mb-1">Recent activity</h2>
+                    <div class="small text-muted">Latest five stock movements</div>
+                </div>
+                <a class="btn btn-sm btn-outline-secondary"
+                   asp-controller="Inventory" asp-action="Index">View history</a>
+            </div>
+            @if (Model.RecentMovements.Count == 0)
+            {
+                <div class="empty-state">No stock movements have been recorded.</div>
+            }
+            else
+            {
+                <div class="list-group list-group-flush">
+                @foreach (var movement in Model.RecentMovements)
+                {
+                    var changeClass = movement.QuantityChange > 0
+                        ? "movement-positive"
+                        : "movement-negative";
+                    <a class="list-group-item list-group-item-action px-3 py-3"
+                       asp-controller="Products" asp-action="Details" asp-route-id="@movement.ProductId">
+                        <div class="d-flex justify-content-between gap-3">
+                            <div>
+                                <div class="fw-semibold">@movement.ProductName</div>
+                                <div class="small text-muted">
+                                    <span class="sku">@movement.ProductSku</span>
+                                    &middot; @movement.LocationCode
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <div class="@changeClass">@movement.QuantityChange.ToString("+0;-0;0")</div>
+                                <div class="small text-muted">@movement.Type</div>
+                            </div>
+                        </div>
+                    </a>
+                }
+                </div>
+            }
+        </section>
+    </div>
+</div>

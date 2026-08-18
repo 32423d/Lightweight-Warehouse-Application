@@ -1,0 +1,164 @@
+@model ProductDetailsViewModel
+@{
+    ViewData["Title"] = Model.Name;
+    var stockClass = Model.TotalQuantity == 0
+        ? "stock-out"
+        : Model.TotalQuantity <= Model.ReorderLevel ? "stock-low" : "stock-ok";
+}
+
+<div class="page-heading">
+    <div>
+        <div class="page-kicker">Product details</div>
+        <div class="d-flex align-items-center flex-wrap gap-2">
+            <h1 class="page-title mb-0">@Model.Name</h1>
+            @if (Model.IsArchived)
+            {
+                <span class="badge text-bg-secondary">Archived</span>
+            }
+        </div>
+        <p class="page-subtitle mt-2">
+            <span class="sku">@Model.Sku</span> &middot; @Model.CategoryName
+        </p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
+        @if (!Model.IsArchived)
+        {
+            <a class="btn btn-primary"
+               asp-controller="Inventory" asp-action="Create" asp-route-productId="@Model.Id">
+                Record movement
+            </a>
+        }
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3">
+        <dl class="detail-stat mb-0">
+            <dt>Total on hand</dt>
+            <dd><span class="stock-pill @stockClass">@Model.TotalQuantity</span></dd>
+        </dl>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <dl class="detail-stat mb-0">
+            <dt>Reorder level</dt>
+            <dd>@Model.ReorderLevel</dd>
+        </dl>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <dl class="detail-stat mb-0">
+            <dt>Unit cost</dt>
+            <dd>@Model.UnitCost.ToString("C")</dd>
+        </dl>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <dl class="detail-stat mb-0">
+            <dt>Stock value</dt>
+            <dd>@((Model.UnitCost * Model.TotalQuantity).ToString("C"))</dd>
+        </dl>
+    </div>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(Model.Description))
+{
+    <div class="content-card content-card-body mb-4">
+        <h2 class="h6 text-uppercase text-muted">Description</h2>
+        <p class="mb-0">@Model.Description</p>
+    </div>
+}
+
+<div class="row g-4">
+    <div class="col-xl-5">
+        <section class="content-card h-100">
+            <div class="content-card-header">
+                <div>
+                    <h2 class="h5 mb-1">Location balances</h2>
+                    <div class="small text-muted">Current quantity by storage area</div>
+                </div>
+            </div>
+            @if (Model.Balances.Count == 0)
+            {
+                <div class="empty-state">No location balances yet.</div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Location</th>
+                                <th class="text-end">On hand</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var balance in Model.Balances)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="fw-semibold">@balance.LocationName</div>
+                                    <div class="sku">@balance.LocationCode</div>
+                                </td>
+                                <td class="text-end fw-semibold">@balance.QuantityOnHand</td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </section>
+    </div>
+    <div class="col-xl-7">
+        <section class="content-card h-100">
+            <div class="content-card-header">
+                <div>
+                    <h2 class="h5 mb-1">Recent movements</h2>
+                    <div class="small text-muted">The audit trail cannot be edited or deleted</div>
+                </div>
+                <a class="btn btn-sm btn-outline-secondary"
+                   asp-controller="Inventory" asp-action="Index" asp-route-productId="@Model.Id">
+                    Full history
+                </a>
+            </div>
+            @if (Model.RecentMovements.Count == 0)
+            {
+                <div class="empty-state">No movements recorded for this product.</div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Location</th>
+                                <th>Note</th>
+                                <th class="text-end">Change</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var movement in Model.RecentMovements)
+                        {
+                            var changeClass = movement.QuantityChange > 0
+                                ? "movement-positive"
+                                : "movement-negative";
+                            <tr>
+                                <td class="text-nowrap">
+                                    @movement.OccurredAtUtc.ToString("yyyy-MM-dd HH:mm")
+                                    <span class="small text-muted">UTC</span>
+                                </td>
+                                <td>@movement.Type</td>
+                                <td><span class="sku">@movement.LocationCode</span></td>
+                                <td class="text-muted">@(movement.Note ?? "—")</td>
+                                <td class="text-end @changeClass">
+                                    @movement.QuantityChange.ToString("+0;-0;0")
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </section>
+    </div>
+</div>

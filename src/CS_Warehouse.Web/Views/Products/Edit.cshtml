@@ -1,0 +1,30 @@
+@model ProductFormViewModel
+@{
+    ViewData["Title"] = "Edit product";
+}
+
+<div class="page-heading">
+    <div>
+        <div class="page-kicker">Catalog</div>
+        <h1 class="page-title">Edit @Model.Sku</h1>
+        <p class="page-subtitle">Update catalog details without changing movement history.</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-8">
+        <form class="content-card content-card-body" method="post">
+            <partial name="_ProductForm" model="Model" />
+        </form>
+    </div>
+    <div class="col-xl-4 mt-4 mt-xl-0">
+        <div class="help-panel">
+            <h2 class="h6">Archiving instead of deleting</h2>
+            <p class="mb-0">Archived products remain in historical reports but cannot receive new stock movements.</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

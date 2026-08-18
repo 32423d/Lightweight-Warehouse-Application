@@ -1,0 +1,114 @@
+@model MovementHistoryViewModel
+@{
+    ViewData["Title"] = "Stock movements";
+    var productOptions = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
+        Model.Products,
+        nameof(LookupOptionViewModel.Id),
+        nameof(LookupOptionViewModel.Label),
+        Model.ProductId);
+    var locationOptions = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
+        Model.Locations,
+        nameof(LookupOptionViewModel.Id),
+        nameof(LookupOptionViewModel.Label),
+        Model.LocationId);
+}
+
+<div class="page-heading">
+    <div>
+        <div class="page-kicker">Audit trail</div>
+        <h1 class="page-title">Stock movements</h1>
+        <p class="page-subtitle">Trace every receipt, issue, and physical-count adjustment.</p>
+    </div>
+    <a class="btn btn-primary" asp-action="Create">Record movement</a>
+</div>
+
+<form class="filter-panel" method="get">
+    <div class="row g-3 align-items-end">
+        <div class="col-xl-3 col-md-6">
+            <label class="form-label" asp-for="Search">Search</label>
+            <input class="form-control" asp-for="Search" placeholder="SKU, name, or note" />
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <label class="form-label" asp-for="ProductId">Product</label>
+            <select class="form-select" asp-for="ProductId" asp-items="productOptions">
+                <option value="">All products</option>
+            </select>
+        </div>
+        <div class="col-xl-2 col-md-4">
+            <label class="form-label" asp-for="LocationId">Location</label>
+            <select class="form-select" asp-for="LocationId" asp-items="locationOptions">
+                <option value="">All locations</option>
+            </select>
+        </div>
+        <div class="col-xl-2 col-md-4">
+            <label class="form-label" asp-for="Type">Type</label>
+            <select class="form-select" asp-for="Type"
+                    asp-items="Html.GetEnumSelectList<StockMovementType>()">
+                <option value="">All types</option>
+            </select>
+        </div>
+        <div class="col-xl-2 col-md-4 d-flex gap-2">
+            <button class="btn btn-primary flex-grow-1" type="submit">Filter</button>
+            <a class="btn btn-outline-secondary" asp-action="Index">Clear</a>
+        </div>
+    </div>
+</form>
+
+<section class="content-card">
+    @if (Model.Movements.Count == 0)
+    {
+        <div class="empty-state">
+            <h2 class="h5">No movements found</h2>
+            <p class="mb-0">Change the filters or record the first stock movement.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Product</th>
+                        <th>Type</th>
+                        <th>Location</th>
+                        <th>Note</th>
+                        <th class="text-end">Change</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var movement in Model.Movements)
+                {
+                    var changeClass = movement.QuantityChange > 0
+                        ? "movement-positive"
+                        : "movement-negative";
+                    <tr>
+                        <td class="text-nowrap">
+                            @movement.OccurredAtUtc.ToString("yyyy-MM-dd HH:mm")
+                            <span class="small text-muted">UTC</span>
+                        </td>
+                        <td>
+                            <a class="fw-semibold text-decoration-none"
+                               asp-controller="Products" asp-action="Details"
+                               asp-route-id="@movement.ProductId">@movement.ProductName</a>
+                            <div class="sku">@movement.ProductSku</div>
+                        </td>
+                        <td>@movement.Type</td>
+                        <td><span class="sku">@movement.LocationCode</span></td>
+                        <td class="text-muted">@(movement.Note ?? "—")</td>
+                        <td class="text-end @changeClass">
+                            @movement.QuantityChange.ToString("+0;-0;0")
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+        @if (Model.Movements.Count == 200)
+        {
+            <div class="small text-muted border-top p-3">
+                Showing the newest 200 matching movements.
+            </div>
+        }
+    }
+</section>

@@ -1,0 +1,104 @@
+@model StockMovementFormViewModel
+@{
+    ViewData["Title"] = "Record movement";
+    var productOptions = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
+        Model.Products,
+        nameof(LookupOptionViewModel.Id),
+        nameof(LookupOptionViewModel.Label),
+        Model.ProductId);
+    var locationOptions = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
+        Model.Locations,
+        nameof(LookupOptionViewModel.Id),
+        nameof(LookupOptionViewModel.Label),
+        Model.LocationId);
+}
+
+<div class="page-heading">
+    <div>
+        <div class="page-kicker">Inventory</div>
+        <h1 class="page-title">Record stock movement</h1>
+        <p class="page-subtitle">Every saved change updates the balance and appends an audit record together.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-xl-8">
+        <form class="content-card content-card-body" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label" asp-for="ProductId"></label>
+                    <select class="form-select" asp-for="ProductId" asp-items="productOptions">
+                        <option value="">Select a product</option>
+                    </select>
+                    <span class="text-danger small" asp-validation-for="ProductId"></span>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" asp-for="LocationId"></label>
+                    <select class="form-select" asp-for="LocationId" asp-items="locationOptions">
+                        <option value="">Select a location</option>
+                    </select>
+                    <span class="text-danger small" asp-validation-for="LocationId"></span>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" asp-for="Type"></label>
+                    <select class="form-select" asp-for="Type"
+                            asp-items="Html.GetEnumSelectList<StockMovementType>()"></select>
+                    <span class="text-danger small" asp-validation-for="Type"></span>
+                </div>
+                <div class="col-md-6">
+                    <label id="quantity-label" class="form-label" asp-for="Quantity"></label>
+                    <input class="form-control" asp-for="Quantity" inputmode="numeric" min="0" />
+                    <div id="quantity-help" class="form-text">
+                        Number of units being received or issued.
+                    </div>
+                    <span class="text-danger small" asp-validation-for="Quantity"></span>
+                </div>
+                <div class="col-12">
+                    <label class="form-label" asp-for="Note"></label>
+                    <textarea class="form-control" asp-for="Note" rows="3"
+                              placeholder="Optional reference, reason, or order number"></textarea>
+                    <span class="text-danger small" asp-validation-for="Note"></span>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button class="btn btn-primary px-4" type="submit">Save movement</button>
+                <a class="btn btn-outline-secondary" asp-action="Index">Cancel</a>
+            </div>
+        </form>
+    </div>
+    <div class="col-xl-4">
+        <div class="help-panel">
+            <h2 class="h6">How movements work</h2>
+            <ul class="mb-0 ps-3">
+                <li class="mb-2"><strong>Receive</strong> adds delivered units.</li>
+                <li class="mb-2"><strong>Issue</strong> removes units and cannot make stock negative.</li>
+                <li><strong>Adjustment</strong> sets the location to a physical count and records the difference.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (() => {
+            const type = document.getElementById("Type");
+            const label = document.getElementById("quantity-label");
+            const help = document.getElementById("quantity-help");
+
+            const updateQuantityCopy = () => {
+                const isAdjustment = type.value === "@((int)StockMovementType.Adjustment)";
+                label.textContent = isAdjustment ? "Counted quantity" : "Quantity";
+                help.textContent = isAdjustment
+                    ? "The physical quantity currently counted at this location."
+                    : "Number of units being received or issued.";
+            };
+
+            type.addEventListener("change", updateQuantityCopy);
+            updateQuantityCopy();
+        })();
+    </script>
+}

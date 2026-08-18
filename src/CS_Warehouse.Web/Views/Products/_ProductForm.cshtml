@@ -1,0 +1,65 @@
+@model ProductFormViewModel
+@{
+    var categoryOptions = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
+        Model.Categories,
+        nameof(LookupOptionViewModel.Id),
+        nameof(LookupOptionViewModel.Label),
+        Model.CategoryId);
+}
+
+<input asp-for="Id" type="hidden" />
+<div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+<div class="row g-3">
+    <div class="col-md-5">
+        <label class="form-label" asp-for="Sku"></label>
+        <input class="form-control text-uppercase" asp-for="Sku" autocomplete="off" />
+        <span class="text-danger small" asp-validation-for="Sku"></span>
+    </div>
+    <div class="col-md-7">
+        <label class="form-label" asp-for="Name"></label>
+        <input class="form-control" asp-for="Name" />
+        <span class="text-danger small" asp-validation-for="Name"></span>
+    </div>
+    <div class="col-12">
+        <label class="form-label" asp-for="Description"></label>
+        <textarea class="form-control" asp-for="Description" rows="3"></textarea>
+        <span class="text-danger small" asp-validation-for="Description"></span>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label" asp-for="CategoryId"></label>
+        <select class="form-select" asp-for="CategoryId" asp-items="categoryOptions">
+            <option value="">Select a category</option>
+        </select>
+        <span class="text-danger small" asp-validation-for="CategoryId"></span>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label" asp-for="UnitCost"></label>
+        <div class="input-group">
+            <span class="input-group-text">$</span>
+            <input class="form-control" asp-for="UnitCost" inputmode="decimal" />
+        </div>
+        <span class="text-danger small" asp-validation-for="UnitCost"></span>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label" asp-for="ReorderLevel"></label>
+        <input class="form-control" asp-for="ReorderLevel" inputmode="numeric" />
+        <span class="text-danger small" asp-validation-for="ReorderLevel"></span>
+    </div>
+    @if (Model.Id > 0)
+    {
+        <div class="col-12">
+            <div class="form-check">
+                <input class="form-check-input" asp-for="IsArchived" />
+                <label class="form-check-label" asp-for="IsArchived">
+                    Archive this product and prevent new movements
+                </label>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="d-flex gap-2 mt-4">
+    <button class="btn btn-primary px-4" type="submit">Save product</button>
+    <a class="btn btn-outline-secondary" asp-action="Index">Cancel</a>
+</div>

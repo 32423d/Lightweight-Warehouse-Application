@@ -1,0 +1,99 @@
+@model ProductIndexViewModel
+@{
+    ViewData["Title"] = "Products";
+    var categoryOptions = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
+        Model.Categories,
+        nameof(LookupOptionViewModel.Id),
+        nameof(LookupOptionViewModel.Label),
+        Model.CategoryId);
+}
+
+<div class="page-heading">
+    <div>
+        <div class="page-kicker">Catalog</div>
+        <h1 class="page-title">Products</h1>
+        <p class="page-subtitle">Search the catalog and review stock across every location.</p>
+    </div>
+    <a class="btn btn-primary" asp-action="Create">Add product</a>
+</div>
+
+<form class="filter-panel" method="get">
+    <div class="row g-3 align-items-end">
+        <div class="col-lg-5">
+            <label class="form-label" asp-for="Search">Search</label>
+            <input class="form-control" asp-for="Search" placeholder="SKU or product name" />
+        </div>
+        <div class="col-lg-3">
+            <label class="form-label" asp-for="CategoryId">Category</label>
+            <select class="form-select" asp-for="CategoryId" asp-items="categoryOptions">
+                <option value="">All categories</option>
+            </select>
+        </div>
+        <div class="col-lg-2">
+            <div class="form-check mb-2">
+                <input class="form-check-input" asp-for="IncludeArchived" />
+                <label class="form-check-label" asp-for="IncludeArchived">Show archived</label>
+            </div>
+        </div>
+        <div class="col-lg-2 d-flex gap-2">
+            <button class="btn btn-primary flex-grow-1" type="submit">Filter</button>
+            <a class="btn btn-outline-secondary" asp-action="Index">Clear</a>
+        </div>
+    </div>
+</form>
+
+<section class="content-card">
+    @if (Model.Products.Count == 0)
+    {
+        <div class="empty-state">
+            <h2 class="h5">No matching products</h2>
+            <p class="mb-0">Change the filters or add a product to the catalog.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th class="text-end">Unit cost</th>
+                        <th class="text-end">On hand</th>
+                        <th class="text-end">Reorder at</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var item in Model.Products)
+                {
+                    var stockClass = item.IsOutOfStock
+                        ? "stock-out"
+                        : item.IsLowStock ? "stock-low" : "stock-ok";
+                    <tr class="@(item.IsArchived ? "opacity-75" : null)">
+                        <td>
+                            <a class="fw-semibold text-decoration-none"
+                               asp-action="Details" asp-route-id="@item.Id">@item.Name</a>
+                            @if (item.IsArchived)
+                            {
+                                <span class="badge text-bg-secondary ms-1">Archived</span>
+                            }
+                            <div class="sku">@item.Sku</div>
+                        </td>
+                        <td>@item.CategoryName</td>
+                        <td class="text-end">@item.UnitCost.ToString("C")</td>
+                        <td class="text-end">
+                            <span class="stock-pill @stockClass">@item.QuantityOnHand</span>
+                        </td>
+                        <td class="text-end">@item.ReorderLevel</td>
+                        <td class="text-end text-nowrap">
+                            <a class="btn btn-sm btn-outline-secondary"
+                               asp-action="Edit" asp-route-id="@item.Id">Edit</a>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
